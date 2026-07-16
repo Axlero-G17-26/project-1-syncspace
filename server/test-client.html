@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>SyncSpace Room Test</title>
+  </head>
+
+  <body>
+    <h1>SyncSpace Room Test</h1>
+
+    <p id="connection-status">Connecting to server...</p>
+
+    <hr />
+
+    <h2>Join Room</h2>
+
+    <input
+      type="text"
+      id="username"
+      placeholder="Enter username"
+    />
+
+    <input
+      type="text"
+      id="room-id"
+      placeholder="Enter room ID"
+    />
+
+    <button id="join-room-button">Join Room</button>
+    <button id="leave-room-button">Leave Room</button>
+
+    <p id="room-status">Not joined in any room</p>
+
+    <hr />
+
+    <h2>Participants</h2>
+
+    <ul id="users-list"></ul>
+
+    <hr />
+
+    <h2>Messages</h2>
+
+    <input
+      type="text"
+      id="message-input"
+      placeholder="Enter message"
+    />
+
+    <button id="send-message-button">Send Message</button>
+
+    <ul id="messages-list"></ul>
+
+    <script src="https://two-obj-tennessee-enters.trycloudflare.com/socket.io/socket.io.js"></script>
+
+    <script>
+      const socket = io("https://two-obj-tennessee-enters.trycloudflare.com");
+
+      const connectionStatus =
+        document.getElementById("connection-status");
+
+      const usernameInput =
+        document.getElementById("username");
+
+      const roomIdInput =
+        document.getElementById("room-id");
+
+      const joinRoomButton =
+        document.getElementById("join-room-button");
+
+      const leaveRoomButton =
+        document.getElementById("leave-room-button");
+
+      const roomStatus =
+        document.getElementById("room-status");
+
+      const usersList =
+        document.getElementById("users-list");
+
+      const messageInput =
+        document.getElementById("message-input");
+
+      const sendMessageButton =
+        document.getElementById("send-message-button");
+
+      const messagesList =
+        document.getElementById("messages-list");
+
+      socket.on("connect", () => {
+        connectionStatus.textContent =
+          `Connected with socket ID: ${socket.id}`;
+      });
+
+      socket.on("disconnect", () => {
+        connectionStatus.textContent =
+          "Disconnected from server";
+      });
+
+      joinRoomButton.addEventListener("click", () => {
+        const username = usernameInput.value.trim();
+        const roomId = roomIdInput.value.trim();
+
+        socket.emit("join-room", {
+          username,
+          roomId,
+        });
+      });
+
+      leaveRoomButton.addEventListener("click", () => {
+        socket.emit("leave-room");
+
+        roomStatus.textContent =
+          "Not joined in any room";
+
+        usersList.innerHTML = "";
+      });
+
+      sendMessageButton.addEventListener("click", () => {
+        const message = messageInput.value.trim();
+
+        socket.emit("send-message", {
+          message,
+        });
+
+        messageInput.value = "";
+      });
+
+      socket.on("room-joined", ({ roomId, user }) => {
+        roomStatus.textContent =
+          `${user.username} joined room ${roomId}`;
+      });
+
+      socket.on("user-joined", ({ user }) => {
+        const item = document.createElement("li");
+
+        item.textContent =
+          `${user.username} joined the room`;
+
+        messagesList.appendChild(item);
+      });
+
+      socket.on("user-left", ({ username }) => {
+        const item = document.createElement("li");
+
+        item.textContent =
+          `${username} left the room`;
+
+        messagesList.appendChild(item);
+      });
+
+      socket.on("room-users", ({ users }) => {
+        usersList.innerHTML = "";
+
+        users.forEach((user) => {
+          const item = document.createElement("li");
+
+          item.textContent =
+            `${user.username} - ${user.socketId}`;
+
+          usersList.appendChild(item);
+        });
+      });
+
+      socket.on("receive-message", (data) => {
+        const item = document.createElement("li");
+
+        item.textContent =
+          `${data.username}: ${data.message}`;
+
+        messagesList.appendChild(item);
+      });
+
+      socket.on("socket-error", ({ message }) => {
+        alert(message);
+      });
+    </script>
+  </body>
+</html>
