@@ -53,10 +53,11 @@
 
     <ul id="messages-list"></ul>
 
-    <script src="https://two-obj-tennessee-enters.trycloudflare.com/socket.io/socket.io.js"></script>
+    <!-- Socket.io client library backend se load hogi -->
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
 
     <script>
-      const socket = io("https://two-obj-tennessee-enters.trycloudflare.com");
+      const socket = io("http://localhost:5000");
 
       const connectionStatus =
         document.getElementById("connection-status");
@@ -91,6 +92,15 @@
       socket.on("connect", () => {
         connectionStatus.textContent =
           `Connected with socket ID: ${socket.id}`;
+
+        console.log("Socket connected:", socket.id);
+      });
+
+      socket.on("connect_error", (error) => {
+        connectionStatus.textContent =
+          `Connection failed: ${error.message}`;
+
+        console.error("Socket connection error:", error);
       });
 
       socket.on("disconnect", () => {
@@ -101,6 +111,11 @@
       joinRoomButton.addEventListener("click", () => {
         const username = usernameInput.value.trim();
         const roomId = roomIdInput.value.trim();
+
+        if (!username || !roomId) {
+          alert("Username and Room ID are required");
+          return;
+        }
 
         socket.emit("join-room", {
           username,
@@ -119,6 +134,11 @@
 
       sendMessageButton.addEventListener("click", () => {
         const message = messageInput.value.trim();
+
+        if (!message) {
+          alert("Please enter a message");
+          return;
+        }
 
         socket.emit("send-message", {
           message,
