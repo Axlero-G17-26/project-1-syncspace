@@ -1,0 +1,6 @@
+{
+  "name": "Collaborative Whiteboard and Code Editor",
+  "description": "A real-time collaborative workspace with an interactive whiteboard on the left and a shared code editor with CRDT-based merging on the right.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
