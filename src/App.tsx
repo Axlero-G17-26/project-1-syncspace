@@ -64,8 +64,7 @@ export default function App() {
 
     const connectWebSocket = () => {
       setConnStatus("connecting");
-      
-      const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:5000";
+      const wsUrl = import.meta.env.VITE_WS_URL || "wss://project-1-syncspace-production.up.railway.app";
 
       console.log(`Connecting to real-time room websocket at ${wsUrl}...`);
       const socket = new WebSocket(wsUrl);
@@ -290,12 +289,6 @@ export default function App() {
     }
   };
 
-  // Open active workspace in another window to test collaboration side-by-side
-  const handleOpenTestWindow = () => {
-    if (!session) return;
-    const url = `${window.location.origin}${window.location.pathname}?room=${session.roomId}`;
-    window.open(url, "_blank");
-  };
 
   // Screen landing selector if no active room is joined
   if (!session) {
@@ -367,17 +360,6 @@ export default function App() {
             <span>{copiedLink ? "Link Copied!" : "Share Room"}</span>
           </button>
 
-          {/* Simulate Client helper */}
-          <button
-            id="open-test-tab-btn"
-            type="button"
-            onClick={handleOpenTestWindow}
-            className="hidden sm:flex items-center gap-1.5 py-1.5 px-3 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all cursor-pointer shadow-sm border border-slate-800"
-            title="Open side-by-side browser window to test"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>Test Parallel Sync</span>
-          </button>
 
           <button
             type="button"

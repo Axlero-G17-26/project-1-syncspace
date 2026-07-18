@@ -389,9 +389,9 @@ export default function CodeEditor({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 overflow-hidden text-slate-300 border-l border-slate-800" id="code-editor-container">
+    <div className="flex flex-col h-full bg-slate-950/80 backdrop-blur-sm overflow-hidden text-slate-300 border-l border-slate-800/60 shadow-2xl" id="code-editor-container">
       {/* 1. Header Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800/80 shrink-0 select-none">
+      <div className="flex items-center justify-between px-5 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 shrink-0 select-none z-10">
         <div className="flex items-center gap-2">
           <Code className="w-4 h-4 text-indigo-400" />
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-200">Shared Editor</span>
@@ -479,7 +479,7 @@ export default function CodeEditor({
               {/* Line Numbers column */}
               <div
                 ref={lineNumbersRef}
-                className="w-10 bg-slate-950 select-none text-right pr-2 text-slate-600 font-mono text-xs pt-4 pb-20 border-r border-slate-900 overflow-hidden shrink-0"
+                className="w-12 bg-slate-900/50 select-none text-right pr-3 text-slate-500/70 font-mono text-xs pt-4 pb-20 border-r border-slate-800/60 overflow-hidden shrink-0 shadow-inner"
               >
                 {lines.map((_, i) => (
                   <div key={i} className="h-5 leading-5">
