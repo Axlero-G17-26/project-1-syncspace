@@ -65,7 +65,7 @@ export default function App() {
     const connectWebSocket = () => {
       setConnStatus("connecting");
       
-      const wsUrl = "ws://localhost:5000";
+      const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:5000";
 
       console.log(`Connecting to real-time room websocket at ${wsUrl}...`);
       const socket = new WebSocket(wsUrl);
