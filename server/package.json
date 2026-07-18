@@ -1,22 +1,28 @@
 {
-  "name": "server",
+  "name": "syncspace-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "description": "Real-time collaborative workspace backend",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "express",
+    "socket.io",
+    "realtime",
+    "collaboration"
+  ],
+  "author": "SyncSpace Team",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "ws": "^8.21.1",
+    "yjs": "^13.6.31"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

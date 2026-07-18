@@ -65,9 +65,7 @@ export default function App() {
     const connectWebSocket = () => {
       setConnStatus("connecting");
       
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}`;
+      const wsUrl = "ws://localhost:5000";
 
       console.log(`Connecting to real-time room websocket at ${wsUrl}...`);
       const socket = new WebSocket(wsUrl);
