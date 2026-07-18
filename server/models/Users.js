@@ -28,6 +28,13 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false, // Hide password by default
     },
+
+    role: {
+      type: String,
+      enum: ["interviewer", "interviewee"],
+      default: "interviewee",
+      required: true,
+    },
   },
   {
     timestamps: true,
