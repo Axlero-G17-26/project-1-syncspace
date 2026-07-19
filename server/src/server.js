@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import { WebSocketServer } from "ws";
 import * as Y from "yjs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import app from "./app.js";
 import connectDatabase from "./config/database.js";
@@ -13,6 +15,36 @@ import collaborationPersistenceService from "./services/collaborationPersistence
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
+
+// ======================================================
+// Express API Routes for Server State
+// ======================================================
+app.get("/api/rooms/stats", (req, res) => {
+  const stats = {};
+  // `rooms` is declared further down, but in JS functions this is fine 
+  // since it's a let/const in module scope, just need to make sure we don't call it before init.
+  for (const [roomId, room] of rooms.entries()) {
+    let candidateCount = 0;
+    for (const user of room.users.values()) {
+      if (user.role === "candidate") {
+        candidateCount++;
+      }
+    }
+    stats[roomId] = { candidates: candidateCount };
+  }
+  res.json(stats);
+});
+
+app.get("/api/rooms/check/:roomId", (req, res) => {
+  const roomId = req.params.roomId;
+  const room = rooms.get(roomId);
+  
+  if (room) {
+    res.json({ exists: true });
+  } else {
+    res.json({ exists: false });
+  }
+});
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -310,7 +342,7 @@ wss.on("connection", (ws) => {
         // ================================================
 
         case "join": {
-          const { roomId, userName, userColor, userId } = data.payload;
+          const { roomId, userName, userColor, userId, role, adminToken } = data.payload;
 
           currentRoomId = roomId || "default";
           currentUserId = userId;
@@ -328,10 +360,16 @@ wss.on("connection", (ws) => {
             );
           }
 
+          let validatedRole = "candidate";
+          if (role === "interviewer" && adminToken === (process.env.ADMIN_KEY || "ADMIN123")) {
+            validatedRole = "interviewer";
+          }
+
           room.users.set(userId, {
             id: userId,
             name: userName,
             color: userColor,
+            role: validatedRole
           });
 
           room.sockets.set(userId, ws);
@@ -409,6 +447,12 @@ wss.on("connection", (ws) => {
             break;
           }
 
+          // Security: Only interviewers can clear the board
+          const user = room.users.get(currentUserId);
+          if (!user || user.role !== "interviewer") {
+            break;
+          }
+
           room.strokes = [];
 
           // Schedule MongoDB persistence
@@ -419,6 +463,97 @@ wss.on("connection", (ws) => {
             type: "whiteboard:clear",
           });
 
+          break;
+        }
+
+        // ================================================
+        // Lock / Unlock Whiteboard
+        // ================================================
+
+        case "whiteboard:lock": {
+          const room = rooms.get(currentRoomId);
+          if (!room) break;
+          const user = room.users.get(currentUserId);
+          if (!user || user.role !== "interviewer") break;
+          
+          broadcastToRoom(currentRoomId, null, {
+            type: "whiteboard:lock",
+          });
+          break;
+        }
+
+        case "whiteboard:unlock": {
+          const room = rooms.get(currentRoomId);
+          if (!room) break;
+          const user = room.users.get(currentUserId);
+          if (!user || user.role !== "interviewer") break;
+
+          broadcastToRoom(currentRoomId, null, {
+            type: "whiteboard:unlock",
+          });
+          break;
+        }
+
+        // ================================================
+        // Whiteboard Sync Strokes (for precise undo)
+        // ================================================
+
+        case "whiteboard:sync_strokes": {
+          const room = rooms.get(currentRoomId);
+          if (!room) break;
+          
+          room.strokes = data.payload.strokes;
+          scheduleRoomPersistence(currentRoomId, room);
+          
+          broadcastToRoom(currentRoomId, currentUserId, {
+            type: "whiteboard:sync_strokes",
+            payload: { strokes: room.strokes },
+          });
+          break;
+        }
+
+        // ================================================
+        // Kick User
+        // ================================================
+
+        case "room:kick": {
+          const room = rooms.get(currentRoomId);
+          if (!room) break;
+          
+          const user = room.users.get(currentUserId);
+          if (!user || user.role !== "interviewer") break;
+          
+          const targetUserId = data.payload.targetUserId;
+          const targetSocket = room.sockets.get(targetUserId);
+          
+          if (targetSocket) {
+            targetSocket.send(JSON.stringify({ type: "room:kicked" }));
+            // Wait slightly before closing to ensure the message is delivered
+            setTimeout(() => {
+              if (targetSocket.readyState === 1) {
+                targetSocket.close();
+              }
+            }, 500);
+          }
+          break;
+        }
+
+        case "room:end_session": {
+          const room = rooms.get(currentRoomId);
+          if (!room) break;
+
+          const user = room.users.get(currentUserId);
+          if (!user || user.role !== "interviewer") break;
+          
+          for (const [uid, sock] of room.sockets.entries()) {
+            sock.send(JSON.stringify({ type: "room:ended" }));
+            setTimeout(() => {
+              if (sock.readyState === 1) {
+                sock.close();
+              }
+            }, 500);
+          }
+          // The cleanup interval will naturally remove the empty room later
           break;
         }
 
@@ -681,6 +816,14 @@ function broadcastToRoom(roomId, excludeUserId, messageObject) {
 // Start Server
 // MongoDB connection happens only once here
 // ======================================================
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.join(__dirname, "../../client/dist");
+
+app.use((req, res) => {
+  res.sendFile(path.join(clientDistPath, "index.html"));
+});
 
 async function startServer() {
   try {
