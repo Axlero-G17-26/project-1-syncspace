@@ -1,8 +1,19 @@
 import * as Y from "yjs";
 import collaborationDocumentRepository from "../repositories/collaborationDocument.repository.js";
 
+import mongoose from "mongoose";
+
 class CollaborationPersistenceService {
   async loadRoomState(roomId, yDoc) {
+    if (mongoose.connection.readyState !== 1) {
+      console.warn("MongoDB not connected. Bypassing loadRoomState.");
+      return {
+        restored: false,
+        whiteboardData: [],
+        version: 0,
+      };
+    }
+
     const savedDocument =
       await collaborationDocumentRepository.findByRoomId(roomId);
 
@@ -28,6 +39,11 @@ class CollaborationPersistenceService {
   }
 
   async saveRoomState(roomId, yDoc, whiteboardData = []) {
+    if (mongoose.connection.readyState !== 1) {
+      console.warn("MongoDB not connected. Bypassing saveRoomState.");
+      return { version: Date.now() }; // Mock a saved document
+    }
+
     const encodedState = Y.encodeStateAsUpdate(yDoc);
 
     const yjsStateBuffer = Buffer.from(encodedState);
