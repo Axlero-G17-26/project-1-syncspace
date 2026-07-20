@@ -1,0 +1,77 @@
+Overview
+
+Implemented the initial real-time communication infrastructure for the SyncSpace project using Express.js and Socket.io. This serves as the foundation for future collaborative features such as the whiteboard, code editor synchronization, and multi-user workspace.
+
+Features Implemented
+  
+Express Server Setup
+Configured Express application.
+Added JSON middleware.
+Enabled CORS support.
+Added health check endpoint (/).
+  
+Socket.io Integration
+Created HTTP server using Express.
+Integrated Socket.io with the HTTP server.
+Configured CORS for socket connections.
+Established real-time client-server communication.
+
+Socket Connection Management
+Handled client connections.
+Handled client disconnections.
+Logged active socket connections for debugging.
+
+Room Management
+
+Implemented room-based collaboration.
+
+Features:
+
+Join Room
+Leave Room
+Multiple isolated rooms
+Automatic room cleanup
+Participant tracking
+
+Room Service
+
+Created a dedicated RoomService for managing collaborative sessions.
+
+Responsibilities:
+
+Create room
+Add user
+Remove user
+Delete empty room
+Get room participants
+
+Socket Events
+
+Implemented custom socket events:
+
+join-room
+leave-room
+send-message
+receive-message
+user-joined
+user-left
+room-users
+
+Real-Time Messaging
+
+Implemented room-based messaging.
+
+Messages are only broadcast to users inside the same room.
+
+
+Multi-User Testing
+
+Successfully tested with multiple browser tabs.
+
+Verified:
+
+Multiple simultaneous users
+Room isolation
+Join/Leave events
+Real-time messaging
+Disconnect handling
