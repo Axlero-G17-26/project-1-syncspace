@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import { WebSocketServer } from "ws";
 import * as Y from "yjs";
 import app from "./app.js";
+import connectDatabase from "./config/database.js";
 import registerRoomSocket from "./sockets/room.socket.js";
 import { SOCKET_EVENTS } from "./constants/socketEvents.js";
 
@@ -31,11 +32,13 @@ const rooms = new Map();
 function getOrCreateRoom(roomId) {
   if (!rooms.has(roomId)) {
     const yDoc = new Y.Doc();
-    
+
     // Initialize with default template text if empty
     const yText = yDoc.getText("codestate");
     if (yText.toString() === "") {
-      yText.insert(0, `// Welcome to the Real-time Collaborative Workspace!
+      yText.insert(
+        0,
+        `// Welcome to the Real-time Collaborative Workspace!
 // Room ID: ${roomId}
 // Start collaborating with your team in real time!
 
@@ -45,14 +48,15 @@ function greetUser(name) {
 }
 
 greetUser("Collaborator");
-`);
+`,
+      );
     }
 
     rooms.set(roomId, {
       yDoc,
       strokes: [],
       users: new Map(),
-      sockets: new Map()
+      sockets: new Map(),
     });
   }
   return rooms.get(roomId);
@@ -62,7 +66,8 @@ greetUser("Collaborator");
 const wss = new WebSocketServer({ noServer: true });
 
 server.on("upgrade", (request, socket, head) => {
-  const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+  const pathname = new URL(request.url, `http://${request.headers.host}`)
+    .pathname;
   // Let Socket.io handle its own handshake requests (usually starts with /socket.io)
   if (!pathname.startsWith("/socket.io")) {
     wss.handleUpgrade(request, socket, head, (ws) => {
@@ -78,7 +83,7 @@ wss.on("connection", (ws, req) => {
   ws.on("message", (message) => {
     try {
       const data = JSON.parse(message.toString());
-      
+
       switch (data.type) {
         case "join": {
           const { roomId, userName, userColor, userId } = data.payload;
@@ -86,34 +91,40 @@ wss.on("connection", (ws, req) => {
           currentUserId = userId;
 
           const room = getOrCreateRoom(currentRoomId);
-          
+
           room.users.set(userId, {
             id: userId,
             name: userName,
-            color: userColor
+            color: userColor,
           });
           room.sockets.set(userId, ws);
 
-          console.log(`User ${userName} (${userId}) joined room ${currentRoomId} via WebSocket`);
+          console.log(
+            `User ${userName} (${userId}) joined room ${currentRoomId} via WebSocket`,
+          );
 
           // 1. Send the newly joined client the current full Yjs doc state as an update
           const docState = Y.encodeStateAsUpdate(room.yDoc);
           const docUpdateHex = Buffer.from(docState).toString("hex");
 
-          ws.send(JSON.stringify({
-            type: "init:code",
-            payload: {
-              update: docUpdateHex
-            }
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "init:code",
+              payload: {
+                update: docUpdateHex,
+              },
+            }),
+          );
 
           // 2. Send current whiteboard strokes
-          ws.send(JSON.stringify({
-            type: "init:whiteboard",
-            payload: {
-              strokes: room.strokes
-            }
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "init:whiteboard",
+              payload: {
+                strokes: room.strokes,
+              },
+            }),
+          );
 
           // 3. Broadcast updated active users list to everyone in the room
           broadcastUserList(currentRoomId);
@@ -125,11 +136,11 @@ wss.on("connection", (ws, req) => {
           if (room) {
             const stroke = data.payload.stroke;
             room.strokes.push(stroke);
-            
+
             // Broadcast stroke to other users in the room
             broadcastToRoom(currentRoomId, currentUserId, {
               type: "whiteboard:stroke",
-              payload: { stroke }
+              payload: { stroke },
             });
           }
           break;
@@ -140,7 +151,7 @@ wss.on("connection", (ws, req) => {
           if (room) {
             room.strokes = [];
             broadcastToRoom(currentRoomId, null, {
-              type: "whiteboard:clear"
+              type: "whiteboard:clear",
             });
           }
           break;
@@ -151,14 +162,14 @@ wss.on("connection", (ws, req) => {
           if (room) {
             const { update } = data.payload;
             const updateBuffer = Buffer.from(update, "hex");
-            
+
             // Apply Yjs update to server's in-memory doc
             Y.applyUpdate(room.yDoc, updateBuffer);
 
             // Broadcast update to all other connections in this room
             broadcastToRoom(currentRoomId, currentUserId, {
               type: "code:update",
-              payload: { update }
+              payload: { update },
             });
           }
           break;
@@ -170,14 +181,14 @@ wss.on("connection", (ws, req) => {
             const user = room.users.get(currentUserId);
             if (user) {
               user.cursor = data.payload.cursor;
-              
+
               // Broadcast cursor moving to all other users in the room
               broadcastToRoom(currentRoomId, currentUserId, {
                 type: "cursor:move",
                 payload: {
                   userId: currentUserId,
-                  cursor: data.payload.cursor
-                }
+                  cursor: data.payload.cursor,
+                },
               });
             }
           }
@@ -196,8 +207,8 @@ wss.on("connection", (ws, req) => {
                 timestamp: new Date().toLocaleTimeString(),
                 userName,
                 userColor,
-                text: logMessage
-              }
+                text: logMessage,
+              },
             });
           }
           break;
@@ -209,12 +220,14 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("close", () => {
-    console.log(`WebSocket closed for User ${currentUserId} in Room ${currentRoomId}`);
+    console.log(
+      `WebSocket closed for User ${currentUserId} in Room ${currentRoomId}`,
+    );
     const room = rooms.get(currentRoomId);
     if (room) {
       room.users.delete(currentUserId);
       room.sockets.delete(currentUserId);
-      
+
       // If room is completely empty, clean it up after a delay
       if (room.users.size === 0) {
         setTimeout(() => {
@@ -242,10 +255,11 @@ function broadcastUserList(roomId) {
     const usersList = Array.from(room.users.values());
     const payload = JSON.stringify({
       type: "users:list",
-      payload: { users: usersList }
+      payload: { users: usersList },
     });
     room.sockets.forEach((socket) => {
-      if (socket.readyState === 1) { // 1 = OPEN
+      if (socket.readyState === 1) {
+        // 1 = OPEN
         socket.send(payload);
       }
     });
@@ -264,6 +278,17 @@ function broadcastToRoom(roomId, excludeUserId, messageObj) {
   }
 }
 
-server.listen(PORT, () => {
-  console.log(`syncspace server is running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    await connectDatabase();
+
+    server.listen(PORT, () => {
+      console.log(`SyncSpace server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("SyncSpace server startup failed:", error.message);
+    process.exit(1);
+  }
+}
+
+startServer();
