@@ -1,0 +1,1 @@
+export default function KonvaWhiteboard() { return <div>Whiteboard Init</div>; }
