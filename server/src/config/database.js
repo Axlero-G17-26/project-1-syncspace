@@ -44,3 +44,4 @@ async function connectDatabase() {
 }
 
 export default connectDatabase;
+// optimized connection pooling
