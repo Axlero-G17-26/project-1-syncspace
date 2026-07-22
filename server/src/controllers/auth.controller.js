@@ -4,6 +4,35 @@ import users from "../data/users.js";
 import { generateToken } from "../auth/jwt.js";
 
 //  testing mail and password are valid or ?, we can use postman to test:-
+export const register = async (req, res) => {
+    const { name, email, password } = req.body;
+
+    const existingUser = users.find((user) => user.email === email);
+
+    if (existingUser) {
+        return res.status(409).json({
+            message: "User already exists",
+        });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = {
+        id: (users.length + 1).toString(),
+        name,
+        email,
+        password: hashedPassword,
+    };
+
+    users.push(newUser);
+
+    const token = generateToken(newUser);
+
+    return res.status(201).json({
+        message: "User registered successfully",
+        token,
+    });
+};
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
