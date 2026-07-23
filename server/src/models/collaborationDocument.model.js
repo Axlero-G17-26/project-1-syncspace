@@ -42,3 +42,4 @@ const CollaborationDocument = mongoose.model(
 );
 
 export default CollaborationDocument;
+// added schema validation
