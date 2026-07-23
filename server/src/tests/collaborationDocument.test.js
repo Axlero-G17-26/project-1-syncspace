@@ -32,9 +32,6 @@ async function testCollaborationDocumentModel() {
       lastPersistedAt: new Date(),
     });
 
-    console.log("Document created successfully:");
-    console.log(createdDocument);
-
     const savedDocument = await CollaborationDocument.findOne({
       roomId: testRoomId,
     });
