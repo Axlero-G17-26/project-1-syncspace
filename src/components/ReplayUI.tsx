@@ -1,1 +1,0 @@
-export default function ReplayUI() { return <div><button>Play</button><input type='range' /><button>Pause</button></div>; }
