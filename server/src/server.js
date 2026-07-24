@@ -49,6 +49,10 @@ const roomLoadPromises = new Map();
 // Save room only after user stops changing data for 2 seconds
 const ROOM_SAVE_DELAY_MS = 2000;
 
+// Keep an empty room in RAM for 30 seconds before cleanup.
+// This prevents unnecessary save/destroy/reload during quick refreshes.
+const ROOM_CLEANUP_DELAY_MS = 30000;
+
 // ======================================================
 // Get Existing Room or Create/Restore Room
 // ======================================================
@@ -105,8 +109,24 @@ function helloSyncSpace() {
       // Indicates whether room has unsaved changes
       isDirty: false,
 
-      // Debounce timer
+      // Increases whenever code or whiteboard data changes.
+      // This lets persistence detect edits that arrive while a save is running.
+      changeVersion: 0,
+
+      // Latest in-memory change version safely stored in MongoDB
+      lastSavedChangeVersion: 0,
+
+      // Prevents parallel MongoDB writes for the same room
+      isSaving: false,
+
+      // Current save operation. Other callers wait for the same promise.
+      savePromise: null,
+
+      // Debounce timer for MongoDB persistence
       saveTimeout: null,
+
+      // Grace-period timer for removing an empty room from RAM
+      cleanupTimeout: null,
     };
 
     rooms.set(roomId, room);
@@ -133,34 +153,80 @@ function helloSyncSpace() {
 
 // ======================================================
 // Persist Room State to MongoDB
+// Serializes saves and protects edits made during an active save
 // ======================================================
 
 async function persistRoom(roomId, room) {
   // No room or no unsaved changes
   if (!room || !room.isDirty) {
-    return;
+    return room?.savePromise || null;
   }
+
+  // A save is already running. Reuse the same promise instead of
+  // starting a parallel MongoDB write for this room.
+  if (room.isSaving && room.savePromise) {
+    return room.savePromise;
+  }
+
+  room.isSaving = true;
+
+  room.savePromise = (async () => {
+    // Keep saving until every change that arrived during persistence
+    // has also been stored.
+    while (room.isDirty) {
+      const savingChangeVersion = room.changeVersion;
+
+      // Mark clean optimistically. Any new edit will set this back to true.
+      room.isDirty = false;
+
+      try {
+        // Copy the strokes array so this save uses a stable whiteboard snapshot.
+        const whiteboardSnapshot = [...room.strokes];
+
+        const savedDocument =
+          await collaborationPersistenceService.saveRoomState(
+            roomId,
+            room.yDoc,
+            whiteboardSnapshot,
+          );
+
+        room.persistenceVersion = savedDocument.version;
+        room.lastSavedChangeVersion = savingChangeVersion;
+
+        // New changes arrived while MongoDB was saving.
+        // Keep the loop running so the latest state is saved next.
+        if (room.changeVersion > savingChangeVersion) {
+          room.isDirty = true;
+
+          console.log(
+            `New changes detected during persistence for room ${roomId}; saving latest state`,
+          );
+        }
+
+        console.log(
+          `Room ${roomId} persisted successfully at version ${savedDocument.version} ` +
+            `(change ${savingChangeVersion})`,
+        );
+      } catch (error) {
+        console.error(`Failed to persist room ${roomId}:`, error);
+
+        // Keep the room dirty so a future edit or cleanup can retry the save.
+        room.isDirty = true;
+
+        // Stop this loop to avoid retrying continuously when MongoDB is down.
+        break;
+      }
+    }
+  })();
 
   try {
-    const savedDocument =
-      await collaborationPersistenceService.saveRoomState(
-        roomId,
-        room.yDoc,
-        room.strokes,
-      );
-
-    room.persistenceVersion = savedDocument.version;
-    room.isDirty = false;
-
-    console.log(
-      `Room ${roomId} persisted successfully at version ${savedDocument.version}`,
-    );
-  } catch (error) {
-    console.error(`Failed to persist room ${roomId}:`, error);
-
-    // Keep dirty state true so it can be saved again
-    room.isDirty = true;
+    await room.savePromise;
+  } finally {
+    room.isSaving = false;
+    room.savePromise = null;
   }
+
+  return null;
 }
 
 // ======================================================
@@ -172,9 +238,16 @@ function scheduleRoomPersistence(roomId, room) {
     return;
   }
 
+  room.changeVersion += 1;
   room.isDirty = true;
 
-  // Cancel previous timer because another change arrived
+  // If persistence is already running, its save loop will detect the
+  // increased changeVersion and save the latest state after the current write.
+  if (room.isSaving) {
+    return;
+  }
+
+  // Cancel previous timer because another change arrived.
   if (room.saveTimeout) {
     clearTimeout(room.saveTimeout);
   }
@@ -247,6 +320,16 @@ wss.on("connection", (ws) => {
           currentUserId = userId;
 
           const room = await getOrCreateRoom(currentRoomId);
+
+          // A user rejoined during the grace period, so keep the room in RAM.
+          if (room.cleanupTimeout) {
+            clearTimeout(room.cleanupTimeout);
+            room.cleanupTimeout = null;
+
+            console.log(
+              `Cleanup cancelled because a user rejoined room ${currentRoomId}`,
+            );
+          }
 
           room.users.set(userId, {
             id: userId,
@@ -466,34 +549,73 @@ wss.on("connection", (ws) => {
 
     // No users remaining in room
     if (room.users.size === 0) {
-      try {
-        // Cancel pending debounced save
-        if (room.saveTimeout) {
-          clearTimeout(room.saveTimeout);
-          room.saveTimeout = null;
+      // Avoid creating more than one cleanup timer for the same room.
+      if (room.cleanupTimeout) {
+        clearTimeout(room.cleanupTimeout);
+      }
+
+      console.log(
+        `Room ${currentRoomId} is empty. Cleanup scheduled in ${
+          ROOM_CLEANUP_DELAY_MS / 1000
+        } seconds`,
+      );
+
+      room.cleanupTimeout = setTimeout(async () => {
+        room.cleanupTimeout = null;
+
+        // The room may have been removed or replaced while the timer waited.
+        const activeRoom = rooms.get(currentRoomId);
+
+        if (!activeRoom || activeRoom !== room) {
+          return;
         }
 
-        // Save all remaining changes before removing room
-        await persistRoom(currentRoomId, room);
+        // A user rejoined before the timer completed.
+        if (activeRoom.users.size > 0) {
+          console.log(
+            `Cleanup skipped because room ${currentRoomId} became active again`,
+          );
+          return;
+        }
 
-        // Destroy Yjs document to release memory
-        room.yDoc.destroy();
+        try {
+          // Cancel pending debounced save because cleanup performs a final save.
+          if (activeRoom.saveTimeout) {
+            clearTimeout(activeRoom.saveTimeout);
+            activeRoom.saveTimeout = null;
+          }
 
-        // Remove room only from RAM
-        // MongoDB document remains stored
-        rooms.delete(currentRoomId);
+          // Save all remaining changes before removing the room.
+          // If a save is already running, persistRoom waits for that same
+          // operation and drains any newer changes before returning.
+          await persistRoom(currentRoomId, activeRoom);
 
-        console.log(
-          `Removed inactive room ${currentRoomId} from memory`,
-        );
-      } catch (error) {
-        console.error(
-          `Failed while closing room ${currentRoomId}:`,
-          error,
-        );
-      }
+          // Check again because a user could join while MongoDB save was running.
+          if (activeRoom.users.size > 0) {
+            console.log(
+              `Cleanup cancelled because a user rejoined room ${currentRoomId} during persistence`,
+            );
+            return;
+          }
+
+          // Destroy the Yjs document to release memory.
+          activeRoom.yDoc.destroy();
+
+          // Remove only from RAM; the MongoDB document remains stored.
+          rooms.delete(currentRoomId);
+
+          console.log(
+            `Removed inactive room ${currentRoomId} from memory after grace period`,
+          );
+        } catch (error) {
+          console.error(
+            `Failed while cleaning up room ${currentRoomId}:`,
+            error,
+          );
+        }
+      }, ROOM_CLEANUP_DELAY_MS);
     } else {
-      // Inform remaining users
+      // Inform remaining users.
       broadcastUserList(currentRoomId);
     }
   });
