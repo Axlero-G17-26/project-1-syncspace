@@ -56,6 +56,7 @@ export const login = async (req, res) => {
         });
     }
 
+
 // if both mail and password are correct, create a token and send positive response:- 
 
     const token = generateToken(user);
@@ -65,3 +66,10 @@ export const login = async (req, res) => {
         token,
     });
 };
+
+ export const logout = (req, res) => {
+        res.status(200).json({
+            success : true,
+            message : "Logout Successfull"
+        })
+    };

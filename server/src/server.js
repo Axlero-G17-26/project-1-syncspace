@@ -1,3 +1,4 @@
+import { connectDB } from "./config/database.js";
 import http from "http";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
@@ -8,6 +9,9 @@ import registerRoomSocket from "./sockets/room.socket.js";
 import { SOCKET_EVENTS } from "./constants/socketEvents.js";
 
 dotenv.config();
+
+// Connect to MongoDB before starting the server
+await connectDB();
 
 const PORT = process.env.PORT || 5000;
 
