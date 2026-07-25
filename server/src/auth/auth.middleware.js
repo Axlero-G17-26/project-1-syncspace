@@ -1,59 +1,79 @@
 import jwt from "jsonwebtoken";
-import users from "../data/users.js";
+import User from "../../models/Users.js";
 
-// Creating a middelware:-
-//         Client
-//    │
-//    ▼
-// authMiddleware
-//    │
-//    ├── Invalid Token ❌
-//    │        │
-//    │        ▼
-//    │   401 Unauthorized
-//    │
-//    └── Valid Token ✅
-//             │
-//             ▼
-//           next()
-//             │
-//             ▼
-//        Controller
 
-export const authMiddleware = (req, res, next) => {
-    // To read the AUTHORIZATION'S headers:-
-    const authHeader = req.headers.authorization;
+// ======================================================
+// Authentication Middleware
+// ======================================================
 
-    if (!authHeader) {
-        res.status(401).json({
-            message: "Access denied. No token provided.",
-        });
+export const protect = async (req, res, next) => {
+  try {
+    let token;
+
+    // Authorization header format:
+    // Bearer eyJhbGciOiJIUzI1Ni...
+    const authorizationHeader = req.headers.authorization;
+
+    if (
+      authorizationHeader &&
+      authorizationHeader.startsWith("Bearer ")
+    ) {
+      token = authorizationHeader.split(" ")[1];
     }
 
-    if (!authHeader.startsWith("Bearer")) {
-        res.status(401).json({
-            message: "Invalid Token Format.",
-        });
+    // Token missing
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication token is required",
+      });
     }
 
-    const token = authHeader.split(" ")[1];
+    // Verify JWT token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET,
+    );
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded:", decoded);
-        console.log("Users:", users);
-        const user = users.find((user) => user.id == decoded.id);
+    // Find authenticated user in MongoDB
+    const user = await User.findById(decoded.id).select(
+      "-password",
+    );
 
-        if (!user) {
-            res.status(401).json({
-                message: "User Not Found."
-            });
-        }
-        req.user = user;
-        next();
-    } catch (error) {
-        res.status(401).json({
-            message: "invalid or expired token.",
-        });
-    };
+    // User may have been deleted after token was issued
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User associated with this token no longer exists",
+      });
+    }
+
+    // Attach user to request
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error("Authentication middleware error:", error);
+
+    // Invalid or expired token
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authentication token",
+      });
+    }
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication token has expired",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Authentication failed",
+      error: error.message,
+    });
+  }
 };

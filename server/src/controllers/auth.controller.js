@@ -1,75 +1,161 @@
-//  importing :-
+// Import required modules
 import bcrypt from "bcrypt";
-import users from "../data/users.js";
+import User from "../../models/Users.js";
 import { generateToken } from "../auth/jwt.js";
 
-//  testing mail and password are valid or ?, we can use postman to test:-
+// ======================================================
+// Register User
+// ======================================================
+
 export const register = async (req, res) => {
+  try {
     const { name, email, password } = req.body;
 
-    const existingUser = users.find((user) => user.email === email);
+    console.log("\n========== REGISTER REQUEST ==========");
+    console.log("Request Body:", req.body);
 
-    if (existingUser) {
-        return res.status(409).json({
-            message: "User already exists",
-        });
+    // Basic validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email and password are required",
+      });
     }
 
+    // Check whether user already exists in MongoDB
+    const existingUser = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
+    console.log("Existing User:", existingUser);
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+
+    // Hash password before storing it
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = {
-        id: (users.length + 1).toString(),
-        name,
-        email,
-        password: hashedPassword,
-    };
+    console.log("Password hashed successfully.");
 
-    users.push(newUser);
+    // Create user in MongoDB
+    const newUser = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+    });
 
+    console.log("\n✅ User saved successfully!");
+    console.log(newUser);
+
+    // Fetch all users from MongoDB
+    const users = await User.find();
+
+    console.log("\n========== USERS COLLECTION ==========");
+    console.log("Total Users:", users.length);
+    console.log(users);
+    console.log("======================================\n");
+
+    // Generate JWT token
     const token = generateToken(newUser);
 
     return res.status(201).json({
-        message: "User registered successfully",
-        token,
+      success: true,
+      message: "User registered successfully",
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+      },
     });
+  } catch (error) {
+    console.error("\n❌ Register Error:");
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to register user",
+      error: error.message,
+    });
+  }
 };
 
+// ======================================================
+// Login User
+// ======================================================
+
 export const login = async (req, res) => {
+  try {
     const { email, password } = req.body;
-// if the user mail is equal to that mail we have created in the user.js:-
-    const user = users.find((user) => user.email === email);
-// if the email is not valid:-
+
+    // Basic validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    // Find user in MongoDB
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
     if (!user) {
-        return res.status(404).json({
-            message: "User not found",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-// Note :- password is nothing but that we have been used in users.js
+
+    // Compare entered password with hashed password
     const isPasswordValid = await bcrypt.compare(
-        password,
-        user.password
+      password,
+      user.password,
     );
-// if the password is not valid :-
+
     if (!isPasswordValid) {
-        return res.status(401).json({
-            message: "Invalid credentials",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
 
-
-// if both mail and password are correct, create a token and send positive response:- 
-
+    // Generate JWT token
     const token = generateToken(user);
 
     return res.status(200).json({
-        message: "Login successful",
-        token,
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
     });
+  } catch (error) {
+    console.error("Login error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to login",
+      error: error.message,
+    });
+  }
 };
 
- export const logout = (req, res) => {
-        res.status(200).json({
-            success : true,
-            message : "Logout Successfull"
-        })
-    };
+// ======================================================
+// Logout User
+// ======================================================
+
+export const logout = (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Logout successful",
+  });
+};
