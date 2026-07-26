@@ -77,3 +77,4 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+// v2: Interviewer role access control extended below
