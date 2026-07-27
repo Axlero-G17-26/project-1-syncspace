@@ -1,1 +1,1 @@
-export default function Auth() { return <div>Auth Page</div>; }
+export default function Auth() { return <div><form><input placeholder='Email'/><input placeholder='Password'/><button>Login</button></form></div>; }
