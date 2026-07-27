@@ -7,3 +7,8 @@ Why Socket.io alone isn't enough ?
 What Y.Doc represents ?
 -> It represents like a notebook --> give 2 friends example.
 Friend A open the book and writes an essay, than on another day friend B open's the book and write one more another essay and CRDT stores both the essay's written in the notebook
+
+## v2 Updates
+- Binary Yjs encoding for MongoDB persistence
+- Room grace-period cleanup (30 min)
+- Interviewer session sync added
