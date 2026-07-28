@@ -16,3 +16,9 @@ export const SOCKET_EVENTS = {
 
   SOCKET_ERROR: "socket-error",
 };
+
+
+// v2 — Interviewer-specific events
+exports.INTERVIEWER_START = 'interviewer:start';
+exports.INTERVIEWER_END   = 'interviewer:end';
+exports.INTERVIEWER_SYNC  = 'interviewer:sync';
