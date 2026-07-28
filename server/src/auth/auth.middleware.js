@@ -77,3 +77,4 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+// auth middleware
