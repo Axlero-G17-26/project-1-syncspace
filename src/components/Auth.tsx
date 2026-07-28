@@ -1,1 +1,1 @@
-export default function Auth() { return <div><form><input placeholder='Email'/><input placeholder='Password'/><button>Login</button></form></div>; }
+export default function Auth() { return <div><form className='flex flex-col gap-4 p-4 border rounded shadow'><input placeholder='Email'/><input placeholder='Password'/><button>Login</button></form></div>; }
