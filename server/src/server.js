@@ -9,6 +9,7 @@ import connectDatabase from "./config/database.js";
 import registerRoomSocket from "./sockets/room.socket.js";
 import collaborationPersistenceService from "./services/collaborationPersistence.service.js";
 
+// Load environment variables before accessing process.env
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
@@ -309,19 +310,15 @@ wss.on("connection", (ws) => {
         // ================================================
 
         case "join": {
-          const {
-            roomId,
-            userName,
-            userColor,
-            userId,
-          } = data.payload;
+          const { roomId, userName, userColor, userId } = data.payload;
 
           currentRoomId = roomId || "default";
           currentUserId = userId;
 
           const room = await getOrCreateRoom(currentRoomId);
 
-          // A user rejoined during the grace period, so keep the room in RAM.
+          // A user rejoined during the grace period,
+          // so keep the room in RAM.
           if (room.cleanupTimeout) {
             clearTimeout(room.cleanupTimeout);
             room.cleanupTimeout = null;
@@ -587,10 +584,10 @@ wss.on("connection", (ws) => {
 
           // Save all remaining changes before removing the room.
           // If a save is already running, persistRoom waits for that same
-          // operation and drains any newer changes before returning.
+          // operation and drains newer changes before returning.
           await persistRoom(currentRoomId, activeRoom);
 
-          // Check again because a user could join while MongoDB save was running.
+          // Check again because a user could join while save was running.
           if (activeRoom.users.size > 0) {
             console.log(
               `Cleanup cancelled because a user rejoined room ${currentRoomId} during persistence`,
@@ -625,10 +622,7 @@ wss.on("connection", (ws) => {
   // ====================================================
 
   ws.on("error", (error) => {
-    console.error(
-      `WebSocket error for User ${currentUserId}:`,
-      error,
-    );
+    console.error(`WebSocket error for User ${currentUserId}:`, error);
   });
 });
 
@@ -685,6 +679,7 @@ function broadcastToRoom(roomId, excludeUserId, messageObject) {
 
 // ======================================================
 // Start Server
+// MongoDB connection happens only once here
 // ======================================================
 
 async function startServer() {
@@ -695,10 +690,7 @@ async function startServer() {
       console.log(`SyncSpace server is running on port ${PORT}`);
     });
   } catch (error) {
-    console.error(
-      "SyncSpace server startup failed:",
-      error.message,
-    );
+    console.error("SyncSpace server startup failed:", error.message);
 
     process.exit(1);
   }

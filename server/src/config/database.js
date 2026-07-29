@@ -14,7 +14,7 @@ async function connectDatabase() {
 
   if (!mongoUri) {
     throw new Error(
-      "MONGODB_URI is missing. Add it to the server environment variables."
+      "MONGODB_URI is missing. Add it to the server environment variables.",
     );
   }
 
@@ -25,12 +25,20 @@ async function connectDatabase() {
     });
 
     console.log(
-      `MongoDB connected successfully: ${mongooseInstance.connection.host}`
+      `MongoDB connected successfully: ${mongooseInstance.connection.host}`,
+    );
+
+    console.log(
+      `Database name: ${mongooseInstance.connection.name}`,
     );
 
     return mongooseInstance;
   } catch (error) {
-    console.error("MongoDB initial connection failed:", error.message);
+    console.error(
+      "MongoDB initial connection failed:",
+      error.message,
+    );
+
     throw error;
   }
 }
