@@ -46,3 +46,5 @@ const collaborationDocumentRepository =
   new CollaborationDocumentRepository();
 
 export default collaborationDocumentRepository;
+
+// v2: Added session metadata queries for interviewer history
