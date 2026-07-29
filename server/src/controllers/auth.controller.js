@@ -102,8 +102,8 @@ export const login = async (req, res) => {
 
     // Find user in MongoDB
     const user = await User.findOne({
-      email: email.toLowerCase(),
-    });
+      email: email.toLowerCase().trim(),
+    }).select("+password");
 
     if (!user) {
       return res.status(404).json({
@@ -113,10 +113,7 @@ export const login = async (req, res) => {
     }
 
     // Compare entered password with hashed password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password,
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({

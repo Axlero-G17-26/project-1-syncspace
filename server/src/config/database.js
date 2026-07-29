@@ -1,27 +1,46 @@
-// import mongoose from "mongoose";
-
-// export const connectDB = async () => {
-//   try {
-//     await mongoose.connect(process.env.MONGO_URI);
-
-//     console.log("✅ MongoDB Connected Successfully");
-//   } catch (error) {
-//     console.error("❌ MongoDB Connection Failed:", error.message);
-//     process.exit(1);
-//   }
-// };
-
 import mongoose from "mongoose";
 
-export const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+/**
+ * Establishes the application's MongoDB connection.
+ *
+ * The server should call this function before accepting
+ * HTTP or WebSocket connections.
+ *
+ * @returns {Promise<typeof mongoose>}
+ * @throws {Error} When MONGODB_URI is missing or MongoDB cannot be reached.
+ */
+async function connectDatabase() {
+  const mongoUri = process.env.MONGODB_URI;
 
-    console.log("✅ MongoDB Connected Successfully");
-    console.log("Database Name:", conn.connection.name);
-    console.log("Host:", conn.connection.host);
-  } catch (error) {
-    console.error("❌ MongoDB Connection Failed:", error.message);
-    process.exit(1);
+  if (!mongoUri) {
+    throw new Error(
+      "MONGODB_URI is missing. Add it to the server environment variables.",
+    );
   }
-};
+
+  try {
+    const mongooseInstance = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 10,
+    });
+
+    console.log(
+      `MongoDB connected successfully: ${mongooseInstance.connection.host}`,
+    );
+
+    console.log(
+      `Database name: ${mongooseInstance.connection.name}`,
+    );
+
+    return mongooseInstance;
+  } catch (error) {
+    console.error(
+      "MongoDB initial connection failed:",
+      error.message,
+    );
+
+    throw error;
+  }
+}
+
+export default connectDatabase;
