@@ -97,3 +97,7 @@ const handleLeaveRoom = (io, socket) => {
 };
 
 export default registerRoomSocket;
+
+
+// v2: Extended for interviewer session broadcast
+// See NotificationService for room-level messaging
