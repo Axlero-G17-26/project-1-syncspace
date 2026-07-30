@@ -156,3 +156,5 @@ export const logout = (req, res) => {
     message: "Logout successful",
   });
 };
+
+// registration logic
