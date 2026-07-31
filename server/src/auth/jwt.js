@@ -46,3 +46,5 @@ export const generateToken = (user) => {
 export const verifyToken = (token) => {
   return jwt.verify(token, process.env.JWT_SECRET);
 };
+
+// v2: Token expiry extended to 7d for persistent interviewer sessions
