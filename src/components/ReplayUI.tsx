@@ -1,1 +1,1 @@
-export default function ReplayUI() { return <div>Replay Controls</div>; }
+export default function ReplayUI() { return <div><button>Play</button><button>Pause</button></div>; }
