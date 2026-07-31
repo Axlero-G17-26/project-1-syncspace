@@ -50,3 +50,4 @@ const collaborationPersistenceService =
 export default collaborationPersistenceService;
 // debounce logic for MongoDB writes
 // logic extraction
+// error logging added
