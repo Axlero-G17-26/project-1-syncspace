@@ -9,6 +9,8 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'monaco-editor/esm/vs/editor/editor.api.js': 'monaco-editor',
+        'monaco-editor/esm/vs/editor/editor.api': 'monaco-editor',
       },
     },
     server: {
