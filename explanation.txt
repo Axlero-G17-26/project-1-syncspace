@@ -1,0 +1,37 @@
+Yjs CRDT Collaboration Explanation
+===================================
+
+This document explains how Yjs (Conflict-free Replicated Data Type) is utilized for real-time, conflict-free collaborative text editing in the SyncSpace project.
+
+1. CRDT Core concept:
+   Yjs operates as a CRDT. It allows multiple clients to edit the same document concurrently without requiring a central authority to resolve conflicts. Edits are merged deterministically on all clients, ensuring they arrive at the exact same document state.
+
+2. Document Initialization:
+   - On the backend Express server, room states are kept in memory. Each room has a unique `Y.Doc` document instance:
+     `const yDoc = new Y.Doc();`
+   - When the first user joins, the document is initialized with a default text template.
+   - When any user joins later, the backend encodes the full state of the Yjs document:
+     `const docState = Y.encodeStateAsUpdate(room.yDoc);`
+     This state is converted into a hex string and sent to the client as an `init:code` message. The client applies this update to initialize its local document instance.
+
+3. Live Syncing (Keystroke-by-keystroke):
+   - In the frontend, the editor binds its operations to the local `Y.Doc`.
+   - The frontend listens to local Yjs document updates:
+     `yDoc.on("update", (update, origin) => { ... })`
+   - If the update originated from a local keystroke (not from a remote sync), the client converts the binary update array into a hex string:
+     `const updateHex = uint8ArrayToHex(update);`
+     It then transmits this to the backend server via WebSocket:
+     `type: "code:update", payload: { update: updateHex }`
+
+4. Backend Propagation:
+   - The backend server receives the `code:update` message.
+   - It decodes the hex string back to a binary buffer and applies it directly to the server's in-memory `Y.Doc` using:
+     `Y.applyUpdate(room.yDoc, updateBuffer);`
+     This updates the server's copy of the document.
+   - Finally, the server broadcasts the exact same update hex string to all other users in the room.
+
+5. Client-Side Application:
+   - Remote clients receive the `code:update` message.
+   - They decode the hex string and apply the binary update to their local `Y.Doc` using:
+     `Y.applyUpdate(yDoc, updateBytes, "remote");`
+   - Applying this update triggers the editor UI to automatically update the text to reflect the remote changes without overriding local cursors or concurrently typed text.
