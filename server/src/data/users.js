@@ -9,3 +9,5 @@ const users = [
 ];
 
 export default users;
+
+// v2: extended with interviewer role
