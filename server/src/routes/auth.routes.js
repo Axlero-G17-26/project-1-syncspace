@@ -19,3 +19,5 @@ router.get("/profile", protect, (req, res) => {
 });
 
 export default router;
+
+// TODO: add POST /api/auth/refresh for token renewal
