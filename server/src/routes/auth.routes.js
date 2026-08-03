@@ -19,3 +19,4 @@ router.get("/profile", protect, (req, res) => {
 });
 
 export default router;
+// route wiring
