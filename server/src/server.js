@@ -697,3 +697,4 @@ async function startServer() {
 }
 
 startServer();
+// graceful shutdown handlers
