@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+
+client/dist/
+client/node_modules/
+client/.env
+server/.env
+.v2_bak/
