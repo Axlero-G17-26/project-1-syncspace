@@ -48,3 +48,7 @@ export const verifyToken = (token) => {
 };
 
 // v2: Token expiry extended to 7d for persistent interviewer sessions
+
+
+// v2: Socket authentication validated via JWT before room join
+// See authMiddleware in auth/auth.middleware.js
