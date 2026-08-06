@@ -1,0 +1,1 @@
+export default function SplitScreen() { return <div className='flex'><div className='w-1/2'>IDE</div><div className='w-1/2'>Board</div></div>; }
