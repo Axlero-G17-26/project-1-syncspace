@@ -64,7 +64,8 @@ export default function App() {
 
     const connectWebSocket = () => {
       setConnStatus("connecting");
-      const wsUrl = import.meta.env.VITE_WS_URL || "wss://project-1-syncspace-production.up.railway.app";
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.hostname}:5000`;
 
       console.log(`Connecting to real-time room websocket at ${wsUrl}...`);
       const socket = new WebSocket(wsUrl);
