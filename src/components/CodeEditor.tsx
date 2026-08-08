@@ -509,3 +509,5 @@ ${editorText.split("\n").length > 5 ? "... // code truncated" : ""}
     </div>
   );
 }
+
+// Yjs integration for Monaco
