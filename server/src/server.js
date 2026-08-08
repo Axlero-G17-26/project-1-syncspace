@@ -8,6 +8,7 @@ import app from "./app.js";
 import connectDatabase from "./config/database.js";
 import registerRoomSocket from "./sockets/room.socket.js";
 import collaborationPersistenceService from "./services/collaborationPersistence.service.js";
+import socketAuthMiddleware from "./auth/socketAuth.middleware.js";
 
 // Load environment variables before accessing process.env
 dotenv.config();
@@ -28,6 +29,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+
+io.use(socketAuthMiddleware);
 
 io.on("connection", (socket) => {
   console.log(`Socket.IO client connected: ${socket.id}`);
@@ -73,8 +76,10 @@ async function getOrCreateRoom(roomId) {
     const yDoc = new Y.Doc();
 
     // Try to restore room state from MongoDB
-    const restoreResult =
-      await collaborationPersistenceService.loadRoomState(roomId, yDoc);
+    const restoreResult = await collaborationPersistenceService.loadRoomState(
+      roomId,
+      yDoc,
+    );
 
     const yText = yDoc.getText("codestate");
 
@@ -271,10 +276,8 @@ const wss = new WebSocketServer({
 
 // Handle WebSocket upgrade request
 server.on("upgrade", (request, socket, head) => {
-  const pathname = new URL(
-    request.url,
-    `http://${request.headers.host}`,
-  ).pathname;
+  const pathname = new URL(request.url, `http://${request.headers.host}`)
+    .pathname;
 
   // Socket.IO handles its own /socket.io upgrade requests
   if (pathname.startsWith("/socket.io")) {
@@ -497,11 +500,7 @@ wss.on("connection", (ws) => {
             break;
           }
 
-          const {
-            message: logMessage,
-            userName,
-            userColor,
-          } = data.payload;
+          const { message: logMessage, userName, userColor } = data.payload;
 
           broadcastToRoom(currentRoomId, null, {
             type: "message:recv",

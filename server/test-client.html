@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -16,17 +16,9 @@
 
     <h2>Join Room</h2>
 
-    <input
-      type="text"
-      id="username"
-      placeholder="Enter username"
-    />
+    <input type="text" id="username" placeholder="Enter username" />
 
-    <input
-      type="text"
-      id="room-id"
-      placeholder="Enter room ID"
-    />
+    <input type="text" id="room-id" placeholder="Enter room ID" />
 
     <button id="join-room-button">Join Room</button>
     <button id="leave-room-button">Leave Room</button>
@@ -43,11 +35,7 @@
 
     <h2>Messages</h2>
 
-    <input
-      type="text"
-      id="message-input"
-      placeholder="Enter message"
-    />
+    <input type="text" id="message-input" placeholder="Enter message" />
 
     <button id="send-message-button">Send Message</button>
 
@@ -57,55 +45,49 @@
     <script src="http://localhost:5000/socket.io/socket.io.js"></script>
 
     <script>
-      const socket = io("http://localhost:5000");
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNzM0ODQ4ZmExMjU2Yjc0MDY5MWNiYiIsImVtYWlsIjoic3dheWFtQGV4YW1wbGUuY29tIiwiaWF0IjoxNzg2MjAzMjc1LCJleHAiOjE3ODYyMDY4NzV9.xt3yASIBwLNz0fwkSsHv2A1XmL-Vo35IEz8TmZ3p26I";
 
-      const connectionStatus =
-        document.getElementById("connection-status");
+      const socket = io("http://localhost:5000", {
+        auth: {
+          token,
+        },
+      });
 
-      const usernameInput =
-        document.getElementById("username");
+      const connectionStatus = document.getElementById("connection-status");
 
-      const roomIdInput =
-        document.getElementById("room-id");
+      const usernameInput = document.getElementById("username");
 
-      const joinRoomButton =
-        document.getElementById("join-room-button");
+      const roomIdInput = document.getElementById("room-id");
 
-      const leaveRoomButton =
-        document.getElementById("leave-room-button");
+      const joinRoomButton = document.getElementById("join-room-button");
 
-      const roomStatus =
-        document.getElementById("room-status");
+      const leaveRoomButton = document.getElementById("leave-room-button");
 
-      const usersList =
-        document.getElementById("users-list");
+      const roomStatus = document.getElementById("room-status");
 
-      const messageInput =
-        document.getElementById("message-input");
+      const usersList = document.getElementById("users-list");
 
-      const sendMessageButton =
-        document.getElementById("send-message-button");
+      const messageInput = document.getElementById("message-input");
 
-      const messagesList =
-        document.getElementById("messages-list");
+      const sendMessageButton = document.getElementById("send-message-button");
+
+      const messagesList = document.getElementById("messages-list");
 
       socket.on("connect", () => {
-        connectionStatus.textContent =
-          `Connected with socket ID: ${socket.id}`;
+        connectionStatus.textContent = `Connected with socket ID: ${socket.id}`;
 
         console.log("Socket connected:", socket.id);
       });
 
       socket.on("connect_error", (error) => {
-        connectionStatus.textContent =
-          `Connection failed: ${error.message}`;
+        connectionStatus.textContent = `Connection failed: ${error.message}`;
 
         console.error("Socket connection error:", error);
       });
 
       socket.on("disconnect", () => {
-        connectionStatus.textContent =
-          "Disconnected from server";
+        connectionStatus.textContent = "Disconnected from server";
       });
 
       joinRoomButton.addEventListener("click", () => {
@@ -126,8 +108,7 @@
       leaveRoomButton.addEventListener("click", () => {
         socket.emit("leave-room");
 
-        roomStatus.textContent =
-          "Not joined in any room";
+        roomStatus.textContent = "Not joined in any room";
 
         usersList.innerHTML = "";
       });
@@ -148,15 +129,13 @@
       });
 
       socket.on("room-joined", ({ roomId, user }) => {
-        roomStatus.textContent =
-          `${user.username} joined room ${roomId}`;
+        roomStatus.textContent = `${user.username} joined room ${roomId}`;
       });
 
       socket.on("user-joined", ({ user }) => {
         const item = document.createElement("li");
 
-        item.textContent =
-          `${user.username} joined the room`;
+        item.textContent = `${user.username} joined the room`;
 
         messagesList.appendChild(item);
       });
@@ -164,8 +143,7 @@
       socket.on("user-left", ({ username }) => {
         const item = document.createElement("li");
 
-        item.textContent =
-          `${username} left the room`;
+        item.textContent = `${username} left the room`;
 
         messagesList.appendChild(item);
       });
@@ -176,8 +154,7 @@
         users.forEach((user) => {
           const item = document.createElement("li");
 
-          item.textContent =
-            `${user.username} - ${user.socketId}`;
+          item.textContent = `${user.username} - ${user.socketId}`;
 
           usersList.appendChild(item);
         });
@@ -186,8 +163,7 @@
       socket.on("receive-message", (data) => {
         const item = document.createElement("li");
 
-        item.textContent =
-          `${data.username}: ${data.message}`;
+        item.textContent = `${data.username}: ${data.message}`;
 
         messagesList.appendChild(item);
       });
