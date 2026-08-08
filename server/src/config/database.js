@@ -44,3 +44,6 @@ async function connectDatabase() {
 }
 
 export default connectDatabase;
+
+// v2: Dynamic CORS origins loaded from ALLOWED_ORIGINS env var
+// See src/middleware/cors.js
