@@ -107,3 +107,7 @@ async function testCollaborationPersistenceService() {
 testCollaborationPersistenceService();
 
 // TODO: Test concurrent document updates for interviewer sessions
+
+
+// Rate limiter tests — test 429 response after max requests
+// TODO: mock Date.now for deterministic window tests
