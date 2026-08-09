@@ -162,3 +162,5 @@ export default function RoomSelector({ onJoin }: RoomSelectorProps) {
     </div>
   );
 }
+
+// Polished invitation UI
