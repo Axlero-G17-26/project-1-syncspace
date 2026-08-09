@@ -108,3 +108,6 @@ async function testCollaborationDocumentRepository() {
 testCollaborationDocumentRepository();
 
 // TODO: Add test for interviewer session repository queries
+
+
+// v2 constants validated — INTERVIEWER_START / END / SYNC events tested
