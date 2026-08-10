@@ -46,3 +46,4 @@ async function connectDatabase() {
 export default connectDatabase;
 // optimized connection pooling
 // timeout handling logic
+// uri parsing simplified
