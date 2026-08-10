@@ -31,7 +31,6 @@ To achieve standard, highly performant collaborative code editing, we replaced t
           "editor.lineHighlightBackground": "#0f172a" // Slate-900
         }
       });
-
 - Real-Time Cursor & Selection Presence:
   We leverage Monaco's Delta Decorations API to paint other users' cursors dynamically on the editor screen.
   We watch the `activeUsers` state and construct `monaco.Range` objects corresponding to their line and column.
