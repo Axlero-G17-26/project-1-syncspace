@@ -115,3 +115,81 @@ The whiteboard drawing history consists of an array of `Stroke` objects containi
    - They decode the hex string and apply the binary update to their local `Y.Doc` using:
      `Y.applyUpdate(yDoc, updateBytes, "remote");`
    - Applying this update triggers the editor UI to automatically update the text to reflect the remote changes without overriding local cursors or concurrently typed text.
+
+## Collaborative IDE — 4-Week Task Checklist
+
+### 🗓️ Week 1 — Project Setup & UI Foundation
+- [x] Initialize Node.js backend project
+- [x] Install and configure Express
+- [x] Set up Socket.io server
+- [x] Configure CORS
+- [x] Create basic server structure
+- [x] Create Socket.io connection/disconnection handlers
+- [x] Create room management system
+- [x] Allow users to create/join rooms
+- [x] Allow users to leave rooms
+- [x] Isolate Socket.io events between rooms
+- [x] Test multiple users in different rooms
+- [x] Add basic error handling for room connections
+- [x] Initialize React frontend
+- [x] Set up project folder structure
+- [x] Create main application layout
+- [x] Create split-screen interface
+- [x] Create Whiteboard panel
+- [x] Create Code Editor panel
+- [x] Add resizable split-screen panels
+- [x] Create basic toolbar for whiteboard
+- [x] Create room/join screen
+- [x] Connect React frontend to Socket.io backend
+- [x] Display current room information
+- [x] Test frontend ↔ backend connection
+
+### 🗓️ Week 2 — Real-Time Collaboration
+- [x] Install Yjs
+- [x] Configure Yjs document handling
+- [x] Integrate Yjs with WebSocket/Socket.io layer
+- [x] Create shared Yjs document for each room
+- [x] Implement Yjs document synchronization
+- [x] Configure Yjs awareness
+- [x] Track connected users
+- [x] Broadcast user presence
+- [x] Broadcast cursor positions
+- [x] Assign/display user names and colors
+- [x] Handle user disconnects
+- [x] Clean up awareness state when users leave
+- [x] Test synchronization between multiple clients
+- [x] Install Konva.js / React-Konva
+- [x] Create Konva Stage
+- [x] Create drawing layer
+- [x] Implement freehand drawing tool
+- [x] Implement rectangle tool
+- [x] Implement text tool
+- [x] Implement selection tool
+- [x] Implement delete/clear functionality
+- [x] Store drawing objects in shared state
+- [x] Send drawing updates through WebSockets/Yjs
+- [x] Receive drawing updates from other users
+- [x] Render remote drawings
+- [x] Add user cursor indicators
+- [x] Display collaborator names
+- [x] Add unique cursor colors
+- [x] Smooth cursor movement
+- [x] Open application in Browser Tab A
+- [x] Open application in Browser Tab B
+- [x] Join both tabs to the same room
+- [x] Draw a freehand line in Tab A
+- [x] Verify line appears instantly in Tab B
+- [x] Draw rectangle in Tab A
+- [x] Verify rectangle appears in Tab B
+- [x] Add text in Tab A
+- [x] Verify text appears in Tab B
+- [x] Modify/delete an object
+- [x] Verify changes synchronize correctly
+- [x] Connect multiple users
+- [x] Verify each user has a unique name
+- [x] Verify each user has a unique color
+- [x] Verify cursors appear on other clients
+- [x] Verify cursor movement is smooth
+- [x] Verify disconnected users disappear
+- [x] Test 3+ simultaneous users
+- [x] Fix synchronization bugs found during review
