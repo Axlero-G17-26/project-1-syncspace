@@ -193,3 +193,29 @@ The whiteboard drawing history consists of an array of `Stroke` objects containi
 - [x] Verify disconnected users disappear
 - [x] Test 3+ simultaneous users
 - [x] Fix synchronization bugs found during review
+
+### 🗓️ Week 3 — Persistence & Collaborative Code Editor
+- [x] Set up MongoDB
+- [x] Create database connection
+- [x] Create session/room persistence model
+- [x] Store Yjs document state as binary data
+- [x] Implement periodic document saving
+- [x] Implement Yjs state encoding
+- [x] Save room state to MongoDB
+- [x] Load existing Yjs state when room starts
+- [x] Restore collaborative session after server restart
+- [x] Prevent unnecessary database writes
+- [x] Handle database connection errors
+- [x] Test persistence with server restart
+- [x] Install Monaco Editor
+- [x] Add Monaco Editor to right-side panel
+- [x] Configure editor language
+- [x] Create Yjs shared text type
+- [x] Bind Monaco text model to Yjs
+- [x] Synchronize text changes between users
+- [x] Handle simultaneous edits
+- [x] Display remote user editing/cursors
+- [x] Add collaborator cursor/selection colors
+- [x] Synchronize code changes in real time
+- [x] Test conflict resolution
+- [x] Test multiple users editing simultaneously
