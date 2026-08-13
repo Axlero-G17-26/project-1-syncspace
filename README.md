@@ -219,3 +219,95 @@ The whiteboard drawing history consists of an array of `Stroke` objects containi
 - [x] Synchronize code changes in real time
 - [x] Test conflict resolution
 - [x] Test multiple users editing simultaneously
+
+### 🗓️ Week 4 — Security, Access Control & Replay
+- [x] Install JWT authentication dependencies
+- [x] Create user registration/login flow
+- [x] Generate JWT tokens
+- [x] Validate JWT tokens
+- [x] Create authentication middleware
+- [x] Protect Socket.io connections
+- [x] Associate users with authenticated identities
+- [x] Create room membership/invitation system
+- [x] Store room permissions
+- [x] Verify user invitation before joining room
+- [x] Reject unauthorized room access
+- [x] Handle expired/invalid tokens
+- [x] Test unauthorized access scenarios
+- [x] Create login screen
+- [x] Create registration screen
+- [x] Store authentication token securely
+- [x] Add authenticated Socket.io connection
+- [x] Create room list/dashboard
+- [x] Create invite/join room UI
+- [x] Show current collaborators
+- [x] Improve whiteboard toolbar
+- [x] Improve code editor UI
+- [x] Add loading states
+- [x] Add error messages
+- [x] Improve responsive layout
+- [x] Fix UI/UX bugs
+- [x] Define session history format
+- [x] Capture drawing changes
+- [x] Capture code changes
+- [x] Store historical states/snapshots
+- [x] Create replay timeline
+- [x] Add play/pause controls
+- [x] Add timeline scrubber
+- [x] Allow backward/forward navigation
+- [x] Reconstruct whiteboard state
+- [x] Reconstruct code state
+- [x] Synchronize code + canvas during replay
+- [x] Prevent accidental editing during replay
+- [x] Test replay with long sessions
+
+### 🏁 Final Review & Deliverables
+- [x] Express server stable
+- [x] Socket.io rooms working
+- [x] Yjs synchronization working
+- [x] Awareness working
+- [x] MongoDB persistence working
+- [x] Server restart recovery working
+- [x] JWT authentication working
+- [x] Room authorization working
+- [x] Replay data stored correctly
+- [x] Error handling implemented
+- [x] React split-screen UI complete
+- [x] Konva whiteboard complete
+- [x] Freehand drawing working
+- [x] Rectangle tool working
+- [x] Text tool working
+- [x] User cursors working
+- [x] Collaborator names/colors working
+- [x] Monaco Editor integrated
+- [x] Real-time code editing working
+- [x] Authentication UI complete
+- [x] Room/invitation UI complete
+- [x] Replay UI complete
+- [x] Responsive/polished UI complete
+- [x] Test with 2 users
+- [x] Test with 3+ users
+- [x] Test simultaneous drawing
+- [x] Test simultaneous code editing
+- [x] Test cursor awareness
+- [x] Test room isolation
+- [x] Test unauthorized room access
+- [x] Test server restart
+- [x] Test MongoDB recovery
+- [x] Test replay functionality
+- [x] Test network disconnect/reconnect
+- [x] Fix critical bugs
+- [x] Clean up console errors
+- [x] Clean up unused code
+- [x] Prepare project documentation
+- [x] Prepare final demo
+- [x] Collaborative Whiteboard
+- [x] Real-Time Code Editor
+- [x] WebSocket Communication
+- [x] Yjs CRDT Synchronization
+- [x] Multi-User Awareness
+- [x] MongoDB Persistence
+- [x] JWT Authentication
+- [x] Room-Based Access Control
+- [x] Session Replay
+- [x] Professional Dual-Pane IDE
