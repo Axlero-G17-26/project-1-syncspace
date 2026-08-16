@@ -16,4 +16,4 @@ const corsOptions = {
   maxAge: 86400,
 };
 
-module.exports = corsOptions;
+export default corsOptions;

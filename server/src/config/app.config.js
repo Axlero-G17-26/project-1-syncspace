@@ -1,7 +1,7 @@
 /**
  * Centralised application configuration
  */
-module.exports = {
+export default {
   app: {
     name: 'SyncSpace',
     version: '2.0.0',

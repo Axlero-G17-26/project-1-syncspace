@@ -28,4 +28,4 @@ function validateBody(schema) {
   };
 }
 
-module.exports = { isValidUsername, isValidPassword, isValidRoomId, validateBody };
+export { isValidUsername, isValidPassword, isValidRoomId, validateBody };

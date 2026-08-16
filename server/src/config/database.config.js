@@ -2,8 +2,8 @@
  * MongoDB connection configuration
  * Wraps database.js with retry logic and health check.
  */
-const mongoose = require('mongoose');
-const logger = require('../utils/logger');
+import mongoose from 'mongoose';
+import logger from '../utils/logger.js';
 
 const MONGO_URI = process.env.MONGO_URI || '';
 const MAX_RETRIES = 5;
@@ -29,4 +29,4 @@ function isConnected() {
   return mongoose.connection.readyState === 1;
 }
 
-module.exports = { connectWithRetry, isConnected };
+export { connectWithRetry, isConnected };

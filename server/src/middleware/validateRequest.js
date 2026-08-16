@@ -1,7 +1,7 @@
 /**
  * Request schema validation middleware factory
  */
-const { validateBody } = require('../utils/validation');
+import { validateBody } from '../utils/validation.js';
 
 function validateLogin() {
   return validateBody({
@@ -23,4 +23,4 @@ function validateJoinRoom() {
   });
 }
 
-module.exports = { validateLogin, validateRegister, validateJoinRoom };
+export { validateLogin, validateRegister, validateJoinRoom };

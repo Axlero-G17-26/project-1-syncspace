@@ -19,6 +19,6 @@ export const SOCKET_EVENTS = {
 
 
 // v2 — Interviewer-specific events
-exports.INTERVIEWER_START = 'interviewer:start';
-exports.INTERVIEWER_END   = 'interviewer:end';
-exports.INTERVIEWER_SYNC  = 'interviewer:sync';
+export const INTERVIEWER_START = 'interviewer:start';
+export const INTERVIEWER_END   = 'interviewer:end';
+export const INTERVIEWER_SYNC  = 'interviewer:sync';

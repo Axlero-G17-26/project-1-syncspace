@@ -1,7 +1,7 @@
 /**
  * Centralised Express error handler
  */
-const logger = require('./logger');
+import logger from './logger.js';
 
 function errorHandler(err, req, res, next) {
   const status = err.status || err.statusCode || 500;
@@ -24,4 +24,4 @@ function notFoundHandler(req, res) {
   res.status(404).json({ success: false, error: { message: 'Route not found' } });
 }
 
-module.exports = { errorHandler, notFoundHandler };
+export { errorHandler, notFoundHandler };

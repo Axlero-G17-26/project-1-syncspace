@@ -19,9 +19,10 @@ function log(level, message, meta = {}) {
   }
 }
 
-module.exports = {
-  error: (msg, meta) => log('error', msg, meta),
-  warn:  (msg, meta) => log('warn',  msg, meta),
-  info:  (msg, meta) => log('info',  msg, meta),
-  debug: (msg, meta) => log('debug', msg, meta),
-};
+export const error = (msg, meta) => log('error', msg, meta);
+export const warn  = (msg, meta) => log('warn',  msg, meta);
+export const info  = (msg, meta) => log('info',  msg, meta);
+export const debug = (msg, meta) => log('debug', msg, meta);
+
+const logger = { error, warn, info, debug };
+export default logger;
