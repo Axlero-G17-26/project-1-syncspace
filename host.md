@@ -1,6 +1,6 @@
 # Hosting & Deployment Guide (SyncSpace)
 
-This guide covers how to build and host the application, as the repository has been refactored into a `client` and `server` structure. The backend Express server is configured to serve both the API and the React frontend on the same port.
+This guide covers how to build and host the application. The repository is completely decoupled into a standalone React `client` and an Express/Socket.io `server`. 
 
 ## Prerequisites
 - Node.js (v18 or higher recommended)
@@ -8,7 +8,7 @@ This guide covers how to build and host the application, as the repository has b
 
 ## Local Development / Production Build
 
-To host the application, you need to build the client-side React application first, and then start the Node.js server. 
+To host the application locally for testing, you need to build the client-side React application, and run the Node.js server independently.
 
 ### 1. Build the Frontend
 Navigate into the `client` folder, install the dependencies, and create a production build.
@@ -17,7 +17,7 @@ cd client
 npm install
 npm run build
 ```
-This will compile the React code into static files located in `client/dist/`.
+This will compile the React code into static files located in `client/dist/`. To preview it locally, run `npm start` (which runs `vite preview`).
 
 ### 2. Configure the Backend Environment
 Open a terminal in the project root and navigate to the `server` directory to set up your environment variables.
@@ -29,52 +29,40 @@ cp .env.example .env
 Open `server/.env` and ensure the following variables are set:
 - `PORT=5000` (or your preferred port)
 - `MONGODB_URI=<your-mongodb-connection-string>`
-- `ADMIN_KEY=ADMIN123` (Set to a secure string for Interviewer authentication)
+- `JWT_SECRET=<your-secure-jwt-secret>`
+- `CLIENT_URL=http://localhost:5173` (or whatever port the client is running on)
+- `ALLOWED_ORIGINS=http://localhost:5173`
 
-*Note: For local UI testing without a database, the server will detect if MongoDB is not connected and automatically fallback to an in-memory session to prevent crashes.*
+*Note: For local UI testing without a database, the server will detect if MongoDB is not connected and automatically fallback to an in-memory session.*
 
 ### 3. Start the Server
 Start the backend server:
 ```bash
 npm start
 ```
-The server will boot up and serve your API routes. Additionally, it is configured to serve the static frontend files from `client/dist`. 
+The server will boot up and serve your API and WebSockets on `http://localhost:5000`.
 
-You can now visit the application by navigating to http://localhost:5000 (or whichever port you specified).
+## Deploying to Production (Render)
 
-## Deploying to Production
+This project uses a decoupled architecture. You must deploy the Backend and Frontend as two separate services. 
 
-This project uses a unified architecture where the Node.js backend serves the compiled React frontend. This means you can deploy the entire application as a **single backend service** on platforms like Render, Railway, or Heroku without needing a separate frontend host like Vercel.
+### Backend (Web Service)
+1. Go to your hosting provider (e.g. Render) and create a **Web Service**.
+2. Set the Root Directory to `server`.
+3. Set the Build Command to `npm install`.
+4. Set the Start Command to `node src/server.js`.
+5. Add your Environment Variables (`MONGODB_URI`, `JWT_SECRET`, etc).
+6. Copy the deployed URL (e.g., `https://syncspace-server.onrender.com`).
 
-### Option 1: Render / Railway / Heroku (Recommended)
-
-1. Create a new Web Service and link your GitHub repository.
-2. Set the **Build Command** to:
-   ```bash
-   cd client && npm install && npm run build && cd ../server && npm install
-   ```
-3. Set the **Start Command** to:
-   ```bash
-   cd server && npm start
-   ```
-4. Set your Environment Variables:
-   - `MONGODB_URI`: Your secure MongoDB connection string.
-   - `ADMIN_KEY`: A secure key used for Interviewer authentication.
-
-### Option 2: Split Deployment (Vercel + Render)
-
-If you prefer to host the frontend on Vercel and the backend on Render, you can do so by splitting the deployment:
-
-**Frontend (Vercel):**
-1. Set the Framework Preset to `Vite`.
+### Frontend (Static Site)
+1. Create a **Static Site**.
 2. Set the Root Directory to `client`.
-3. Add an Environment Variable `VITE_API_URL` pointing to your backend's public URL.
-4. Add an Environment Variable `VITE_WS_URL` pointing to your backend's public WebSocket URL (e.g., `wss://your-backend.onrender.com`).
+3. Set the Build Command to `npm run build`.
+4. Set the Publish Directory to `dist`.
+5. Add your Environment Variables:
+   - `VITE_WS_URL`: `https://syncspace-server.onrender.com`
+   - `VITE_API_URL`: `https://syncspace-server.onrender.com/api`
+6. Deploy the frontend, and take its URL (e.g., `https://syncspace-client.onrender.com`).
 
-**Backend (Render):**
-1. Set the Root Directory to `server`.
-2. Set the Build Command to `npm install`.
-3. Set the Start Command to `npm start`.
-4. Ensure `MONGODB_URI` and `ADMIN_KEY` are configured.
-
-*(Note: If splitting the deployment, ensure your backend's CORS policies allow requests from the Vercel domain).*
+### Final CORS Setup
+Go back to the Backend service and add the frontend URL to the `CLIENT_URL` and `ALLOWED_ORIGINS` environment variables, then trigger a manual deploy to apply the CORS rules.
