@@ -819,10 +819,9 @@ function broadcastToRoom(roomId, excludeUserId, messageObject) {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const clientDistPath = path.join(__dirname, "../../client/dist");
 
 app.use((req, res) => {
-  res.sendFile(path.join(clientDistPath, "index.html"));
+  res.status(404).json({ success: false, message: "API route not found" });
 });
 
 async function startServer() {

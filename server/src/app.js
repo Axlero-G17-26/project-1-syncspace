@@ -13,9 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 
-// Serve static client files
-const clientDistPath = path.join(__dirname, "../../client/dist");
-app.use(express.static(clientDistPath));
+// Static client serving removed for decoupled architecture
 
 app.get("/api", (req, res) => {
   res.status(200).json({
